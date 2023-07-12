@@ -1,0 +1,22 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: Book
+  freemarker:
+    suffix: .ftl
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+springfox:
+  documentation:
+    swagger-ui:
+      enabled: true
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+server:
+  port: 8181
