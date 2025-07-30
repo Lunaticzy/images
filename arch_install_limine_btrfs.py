@@ -98,7 +98,7 @@ def select_disk():
                 if confirm.lower() == 'y':
                     return selected
                 else:
-                    print("请重新选择磁盘")
+                    print("请重新重新选择磁盘")
             else:
                 print(f"请输入有效的编号 (1-{})".format(len(disks)))
         except ValueError:
@@ -146,22 +146,21 @@ TIMELINE_MIN_AGE="1800"
 
 def configure_limine(installer):
     """配置 limine 引导程序以支持 btrfs 和快照恢复，包括 NVRAM 条目"""
-    # 找到 EFI 分区
+    # 找到 EFI 分区和磁盘
     efi_partition = next(p for p in installer.partitions if p.mountpoint == "/boot")
-    efi_disk = efi_partition.device.path
-    # 获取分区号（如 /dev/nvme0n1p1 的分区号是 1）
-    efi_part_num = efi_partition.number
+    efi_disk = efi_partition.device.path  # 磁盘设备（如 /dev/nvme0n1）
+    efi_part_num = efi_partition.number   # 分区号（如 1）
     
-    # 安装 limine 到 EFI 系统
-    installer.chroot(f"limine-install {efi_partition.path}")
+    # 修复：使用磁盘设备而非分区路径安装 Limine
+    # limine-install 需要的是磁盘路径，而不是分区路径
+    installer.chroot(f"limine-install {efi_disk}")
     
-    # 创建 EFI 目录并复制引导文件（确保路径正确）
+    # 创建 EFI 目录并复制引导文件
     installer.chroot("mkdir -p /boot/EFI/limine")
     installer.chroot("cp /usr/share/limine/limine-uefi-cd.bin /boot/EFI/limine/limine.efi")
     installer.chroot("cp /boot/limine.cfg /boot/EFI/limine/")
     
     # 使用 efibootmgr 在 NVRAM 中添加 Limine 引导条目
-    # 格式: efibootmgr --create --disk 磁盘 --part 分区号 --loader 引导文件路径 --label "名称" --unicode
     boot_entry_command = (
         f"efibootmgr --create "
         f"--disk {efi_disk} "
@@ -172,13 +171,11 @@ def configure_limine(installer):
     )
     installer.chroot(boot_entry_command)
     
-    # 可选：设置为默认启动项
-    # 先获取创建的启动项编号
+    # 设置为默认启动项
     installer.chroot("efibootmgr > /tmp/efibootmgr.txt")
     with open(installer.target + "/tmp/efibootmgr.txt", "r") as f:
         output = f.read()
     
-    # 查找我们创建的启动项编号
     for line in output.splitlines():
         if "Limine Bootloader" in line:
             boot_num = line.split()[0].replace("Boot", "").replace("*", "").strip()
@@ -315,3 +312,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
