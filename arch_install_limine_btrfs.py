@@ -1,5 +1,5 @@
 import archinstall
-from archinstall.lib.disk import Disk
+from archinstall.lib.disk.device import Disk  # 修复Disk类的导入路径
 import os
 import subprocess
 
@@ -90,7 +90,7 @@ def select_disk():
             index = int(choice) - 1
             
             if 0 <= index < len(disks):
-                selected = disks[index]["device"]
+                selected = disks[index[index]["device"]
                 print(f"你选择了: {selected}")
                 
                 # 确认警告
@@ -98,7 +98,7 @@ def select_disk():
                 if confirm.lower() == 'y':
                     return selected
                 else:
-                    print("请重新重新选择磁盘")
+                    print("请重新选择磁盘")
             else:
                 print(f"请输入有效的编号 (1-{})".format(len(disks)))
         except ValueError:
@@ -152,7 +152,6 @@ def configure_limine(installer):
     efi_part_num = efi_partition.number   # 分区号（如 1）
     
     # 修复：使用磁盘设备而非分区路径安装 Limine
-    # limine-install 需要的是磁盘路径，而不是分区路径
     installer.chroot(f"limine-install {efi_disk}")
     
     # 创建 EFI 目录并复制引导文件
